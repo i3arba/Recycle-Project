@@ -1,3 +1,9 @@
 [submodule "payment-splitter/lib/forge-std"]
 	path = payment-splitter/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "payment-splitter/lib/openzeppelin-contracts"]
+	path = payment-splitter/lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "payment-splitter/lib/contracts"]
+	path = payment-splitter/lib/contracts
+	url = https://github.com/thirdweb-dev/contracts
