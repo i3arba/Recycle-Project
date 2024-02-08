@@ -12,18 +12,20 @@ error RecyclePaymentSplitter__OnlyFarmersContractCanSendEth();
 
 contract BatchDistribution is Ownable, ReentrancyGuard {
 
-    uint256 immutable private i_farmersSupply = 98;
+    uint256 immutable private i_farmersSupply = 101;
 
     mapping(uint256 nftId => uint256 valueReceived) private s_valueReceivedPerNFT;
 
     //IERC721 constant MINDS_FARMER = IERC721(0x2D91875FA696bDf3543ca0634258F6074Cc5df20);
     IERC721 immutable private MINDS_FARMER;
 
+    event BatchDistribution__ValueReceived(uint256 indexed receivedValue, uint256 indexed valuePerNFT);
+
     constructor(address _owner, address _farmers) Ownable(_owner) {
         MINDS_FARMER = IERC721(_farmers);
     }
 
-    receive() external payable nonReentrant {
+    receive() external payable /*nonReentrant*/ {
         if (msg.sender != address(MINDS_FARMER)) {
             revert RecyclePaymentSplitter__OnlyFarmersContractCanSendEth();
         }
@@ -37,7 +39,9 @@ contract BatchDistribution is Ownable, ReentrancyGuard {
         //Divide o valor entre os holders
         uint256 valuePerNFT = valueToSplit / farmers;
 
-        _distribution(valuePerNFT);
+        emit BatchDistribution__ValueReceived(msg.value, valuePerNFT);
+
+        // _distribution(valuePerNFT);
     }
 
     function _distribution(uint256 _value) private nonReentrant {
@@ -53,5 +57,9 @@ contract BatchDistribution is Ownable, ReentrancyGuard {
 
     function getValueReceivedPerNFT(uint256 _nftId) external view returns (uint256) {
         return s_valueReceivedPerNFT[_nftId];
+    }
+
+    function getBalance() external view returns (uint256) {
+        return address(this).balance;
     }
 }
