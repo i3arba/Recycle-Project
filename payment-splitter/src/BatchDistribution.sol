@@ -16,9 +16,12 @@ contract BatchDistribution is Ownable, ReentrancyGuard {
 
     mapping(uint256 nftId => uint256 valueReceived) private s_valueReceivedPerNFT;
 
-    IERC721 constant MINDS_FARMER = IERC721(0x2D91875FA696bDf3543ca0634258F6074Cc5df20);
+    //IERC721 constant MINDS_FARMER = IERC721(0x2D91875FA696bDf3543ca0634258F6074Cc5df20);
+    IERC721 immutable private MINDS_FARMER;
 
-    constructor() Ownable(msg.sender) {}
+    constructor(address _owner, address _farmers) Ownable(_owner) {
+        MINDS_FARMER = IERC721(_farmers);
+    }
 
     receive() external payable nonReentrant {
         if (msg.sender != address(MINDS_FARMER)) {

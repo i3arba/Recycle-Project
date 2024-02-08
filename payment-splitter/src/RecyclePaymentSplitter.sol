@@ -14,28 +14,26 @@ error RecyclePaymentSplitter__InformYourTokenIdToWithdraw();
 contract RecyclePaymentSplitter is Ownable, ReentrancyGuard{
     
     uint256 private s_totalValueDistributedPerFarmerNFT;
-    uint256 immutable private i_farmersSupply = 98;
+    uint256 immutable private i_farmersSupply = 100;
     
-    IERC721 constant MINDS_FARMER = IERC721(0x2D91875FA696bDf3543ca0634258F6074Cc5df20);
+    //IERC721 constant private MINDS_FARMER = IERC721(0x2D91875FA696bDf3543ca0634258F6074Cc5df20);
+    IERC721 immutable private MINDS_FARMER;
     
     mapping(uint256 tokenId => uint256 valueAlreadyPaid) private s_valueAlreadyPaidPerNFT;
 
     event RecyclePaymentSplitter__Withdrawal(address indexed account, uint256 indexed value);
     
-    constructor() Ownable(msg.sender){}
-    //1. receber o valor depositado
-    //2. dividir o valor igualmente entre os NFTs
-    //3. atualizar o saldo disponível para retirada
+    constructor(address _owner, address _farmer) Ownable(_owner){
+        MINDS_FARMER = IERC721(_farmer);
+    }
 
     receive() external payable nonReentrant {
-        //Busca o total de holders e Add 1 para deixar uma quantia de ether para o contrato
-        uint256 farmers = i_farmersSupply + 1;
 
         //Inicia uma variável com o valor a ser dividido
         uint256 valueToSplit = msg.value;
 
         //Divide o valor entre os holders
-        uint256 valuePerNFT = valueToSplit / farmers;
+        uint256 valuePerNFT = valueToSplit / i_farmersSupply;
 
         //Atualiza o saldo disponível para retirada/holder
         s_totalValueDistributedPerFarmerNFT += valuePerNFT;
