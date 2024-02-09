@@ -6,15 +6,17 @@ import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import{ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-
+error RecyclePaymentSplitter__OnlyFarmersContractCanSendEth();
 error RecyclePaymentSplitter__NoValueToWithdraw();
 error RecyclePaymentSplitter__OnlyMindsFarmerCanWithdraw();
 error RecyclePaymentSplitter__InformYourTokenIdToWithdraw();
 
 contract RecyclePaymentSplitter is Ownable, ReentrancyGuard{
     
+    uint256 private s_totalValueReceived;
+    uint256 private s_totalValueWithdrawn;
     uint256 private s_totalValueDistributedPerFarmerNFT;
-    uint256 immutable private i_farmersSupply = 100;
+    uint256 constant private FARMERS_SUPPLY = 100;
     
     //IERC721 constant private MINDS_FARMER = IERC721(0x2D91875FA696bDf3543ca0634258F6074Cc5df20);
     IERC721 immutable private MINDS_FARMER;
@@ -22,44 +24,49 @@ contract RecyclePaymentSplitter is Ownable, ReentrancyGuard{
     mapping(uint256 tokenId => uint256 valueAlreadyPaid) private s_valueAlreadyPaidPerNFT;
 
     event RecyclePaymentSplitter__Withdrawal(address indexed account, uint256 indexed value);
+    event RecyclePaymentSplitter__ValueReceived(uint256 indexed receivedValue, uint256 indexed valuePerNFT);
     
     constructor(address _owner, address _farmer) Ownable(_owner){
         MINDS_FARMER = IERC721(_farmer);
     }
 
-    receive() external payable nonReentrant {
-
-        //Inicia uma variável com o valor a ser dividido
-        uint256 valueToSplit = msg.value;
-
-        //Divide o valor entre os holders
-        uint256 valuePerNFT = valueToSplit / i_farmersSupply;
-
-        //Atualiza o saldo disponível para retirada/holder
-        s_totalValueDistributedPerFarmerNFT += valuePerNFT;
+    receive() external payable {
+        if(msg.sender != address(MINDS_FARMER)){
+            revert RecyclePaymentSplitter__OnlyFarmersContractCanSendEth();
+        }
     }
-    
+
+    function verifyContractBalanceToDistribution(uint256[] memory _farmersId) external /*nonReentrant*/{
+        if(address(this).balance == (s_totalValueReceived + s_totalValueWithdrawn)){
+            _withdraw(_farmersId);
+        } else {
+            s_totalValueReceived += (address(this).balance - s_totalValueReceived);
+            s_totalValueDistributedPerFarmerNFT = (s_totalValueReceived + s_totalValueWithdrawn) / FARMERS_SUPPLY;
+
+            _withdraw(_farmersId);
+        }
+    }
+
     /**
      * @notice This function is used to pull royalties from the contract
      * @dev Only MINDS Farmer with avaiable funds can withdraw
      */
-    function withdraw(uint256[] memory _farmersId) external nonReentrant{
+    function _withdraw(uint256[] memory _farmersId) private nonReentrant{
         if(_farmersId.length < 1){
             revert RecyclePaymentSplitter__InformYourTokenIdToWithdraw();
         }
-        
+
         for(uint256 i = 0; i < _farmersId.length; i++){
             if(MINDS_FARMER.ownerOf(_farmersId[i]) != msg.sender){
                 revert RecyclePaymentSplitter__OnlyMindsFarmerCanWithdraw();
-
             } else if(s_valueAlreadyPaidPerNFT[_farmersId[i]] == s_totalValueDistributedPerFarmerNFT){
                 revert RecyclePaymentSplitter__NoValueToWithdraw();
-                
             } else {
                 uint256 valueToWithdraw = s_totalValueDistributedPerFarmerNFT - s_valueAlreadyPaidPerNFT[_farmersId[i]];
 
                 //Armazena o valor recebido por NFT's
                 s_valueAlreadyPaidPerNFT[_farmersId[i]] += valueToWithdraw;
+                s_totalValueWithdrawn += valueToWithdraw;
         
                 emit RecyclePaymentSplitter__Withdrawal(msg.sender, valueToWithdraw);
 
@@ -71,5 +78,9 @@ contract RecyclePaymentSplitter is Ownable, ReentrancyGuard{
 
     function getTotalValueDistributedPerFarmer() external view returns(uint256){
         return s_totalValueDistributedPerFarmerNFT;
+    }
+
+    function getBalance() external view returns (uint256) {
+        return address(this).balance;
     }
 }

@@ -60,7 +60,7 @@ contract MindsFarmerMock is ERC721, ERC721URIStorage, ERC721Burnable {
             revert RecyclePaymentSplitter__InsuficientBalanceToWithdraw();
         }
 
-        uint256 valueToWithdraw = address(this).balance - 1 ether;
+        uint256 valueToWithdraw = address(this).balance;
 
         emit RecyclePaymentSplitter__ValueWithdrawn(valueToWithdraw);
 
