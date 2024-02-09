@@ -18,8 +18,8 @@ contract FundeMeTest is Test {
 
     address BARBA = makeAddr("user");
     uint256 constant STARTING_BALANCE = 1000 ether;
-    uint256 constant TOTAL_NFTS = 100;
-    uint256 constant VALUE_TO_TRANSFER = 101 ether;
+    uint256 constant TOTAL_NFTS = 10;
+    uint256 constant VALUE_TO_TRANSFER = 100 ether;
     address USER1 = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
     address USER2 = 0x70997970C51812dc3A010C7d01b50e0d17dc79C8;
     address USER3 = 0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC;
@@ -95,17 +95,59 @@ contract FundeMeTest is Test {
         farmers.withdraw();
 
         uint256 balanceAfterWithdraw = splitter.getBalance();
-        assertEq(balanceAfterWithdraw, 101 ether);
+        assertEq(balanceAfterWithdraw, VALUE_TO_TRANSFER);
 
         uint256[] memory farmersId = new uint256[](1);
-        farmersId[0] = 1;
+        farmersId[0] = 0;
 
         vm.prank(USER1);
         splitter.verifyContractBalanceToDistribution(farmersId);
 
         uint256 farmersBalancoFinal = farmers.getBalance();
         uint256 splitterBalancoFinal = splitter.getBalance();
-        assertEq(farmersBalancoFinal, 1 ether);
-        assertEq(splitterBalancoFinal, 89.1 ether); //100 / 101 = 99
+        //Sacamos todo o valor
+        assertEq(farmersBalancoFinal, 0);
+        assertEq(splitterBalancoFinal, (VALUE_TO_TRANSFER - (VALUE_TO_TRANSFER/TOTAL_NFTS)));
+    }
+
+    function testSeOValorSacadoEhContabilizadoCorretamenteNoNFTID() public distribuiNFTs{
+
+        farmers.withdraw();
+
+        uint256[] memory farmersId = new uint256[](1);
+        farmersId[0] = 0;
+
+        vm.prank(USER1);
+        splitter.verifyContractBalanceToDistribution(farmersId);
+
+        uint256 valueWithdrawnToNFTZero = splitter.getValueWithdrawnPerFarmer(0);
+        uint256 valueNFTCanWithdraw = splitter.getTotalValueDistributedPerFarmer();
+        //Sacamos todo o valor
+        assertEq(valueWithdrawnToNFTZero, valueNFTCanWithdraw);
+        
+        assertEq(valueNFTCanWithdraw, USER1.balance );
+    }
+
+    function testSeMultiplosSaquesOcorremCorretamente() public distribuiNFTs{
+        farmers.withdraw();
+
+        uint256[] memory farmersId1 = new uint256[](1);
+        farmersId1[0] = 0;
+
+        vm.prank(USER1);
+        splitter.verifyContractBalanceToDistribution(farmersId1);
+
+        uint256[] memory farmersId2 = new uint256[](1);
+        farmersId2[0] = 1;
+
+        vm.prank(USER2);
+        splitter.verifyContractBalanceToDistribution(farmersId2);
+
+        uint256 valueWithdrawnToNFTZero = splitter.getValueWithdrawnPerFarmer(1);
+        uint256 valueNFTCanWithdraw = splitter.getTotalValueDistributedPerFarmer();
+
+        assertEq(valueWithdrawnToNFTZero, valueNFTCanWithdraw);
+        
+        assertEq(valueNFTCanWithdraw, USER2.balance );
     }
 }

@@ -6,13 +6,13 @@ import {ERC721URIStorage} from "@openzeppelin/contracts/token/ERC721/extensions/
 import {ERC721Burnable} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-error RecyclePaymentSplitter__InsuficientBalanceToWithdraw();
+error MindsFarmersMock__InsuficientBalanceToWithdraw();
 
 contract MindsFarmerMock is ERC721, ERC721URIStorage, ERC721Burnable {
     uint256 private _nextTokenId;
     address private s_splitter;
 
-    event RecyclePaymentSplitter__ValueWithdrawn(uint256 valueToWithdraw);
+    event MindsFarmersMock__ValueWithdrawn(uint256 valueToWithdraw);
 
     constructor()
         ERC721("MindsFarmers", "MOCK")
@@ -57,12 +57,12 @@ contract MindsFarmerMock is ERC721, ERC721URIStorage, ERC721Burnable {
 
     function withdraw() external {
         if(address(this).balance < 2) {
-            revert RecyclePaymentSplitter__InsuficientBalanceToWithdraw();
+            revert MindsFarmersMock__InsuficientBalanceToWithdraw();
         }
 
         uint256 valueToWithdraw = address(this).balance;
 
-        emit RecyclePaymentSplitter__ValueWithdrawn(valueToWithdraw);
+        emit MindsFarmersMock__ValueWithdrawn(valueToWithdraw);
 
         payable(s_splitter).transfer(valueToWithdraw);
     }

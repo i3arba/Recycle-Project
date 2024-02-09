@@ -16,7 +16,7 @@ contract RecyclePaymentSplitter is Ownable, ReentrancyGuard{
     uint256 private s_totalValueReceived;
     uint256 private s_totalValueWithdrawn;
     uint256 private s_totalValueDistributedPerFarmerNFT;
-    uint256 constant private FARMERS_SUPPLY = 100;
+    uint256 constant private FARMERS_SUPPLY = 10;
     
     //IERC721 constant private MINDS_FARMER = IERC721(0x2D91875FA696bDf3543ca0634258F6074Cc5df20);
     IERC721 immutable private MINDS_FARMER;
@@ -37,7 +37,7 @@ contract RecyclePaymentSplitter is Ownable, ReentrancyGuard{
     }
 
     function verifyContractBalanceToDistribution(uint256[] memory _farmersId) external /*nonReentrant*/{
-        if(address(this).balance == (s_totalValueReceived + s_totalValueWithdrawn)){
+        if(address(this).balance <= (s_totalValueReceived + s_totalValueWithdrawn)){
             _withdraw(_farmersId);
         } else {
             s_totalValueReceived += (address(this).balance - s_totalValueReceived);
@@ -78,6 +78,10 @@ contract RecyclePaymentSplitter is Ownable, ReentrancyGuard{
 
     function getTotalValueDistributedPerFarmer() external view returns(uint256){
         return s_totalValueDistributedPerFarmerNFT;
+    }
+
+    function getValueWithdrawnPerFarmer(uint256 _tokenId) external view returns(uint256){
+        return s_valueAlreadyPaidPerNFT[_tokenId];
     }
 
     function getBalance() external view returns (uint256) {
