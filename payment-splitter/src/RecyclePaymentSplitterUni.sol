@@ -11,7 +11,7 @@ error RecyclePaymentSplitter__NoValueToWithdraw();
 error RecyclePaymentSplitter__OnlyMindsFarmerCanWithdraw();
 error RecyclePaymentSplitter__InformYourTokenIdToWithdraw();
 
-contract RecyclePaymentSplitter is Ownable, ReentrancyGuard{
+contract RecyclePaymentSplitterUni is Ownable, ReentrancyGuard{
     
     uint256 private s_totalValueReceived;
     uint256 private s_totalValueWithdrawn;
@@ -36,50 +36,49 @@ contract RecyclePaymentSplitter is Ownable, ReentrancyGuard{
         }
     }
 
-    function verifyContractBalanceToDistribution(uint256[] memory _farmersId) external /*nonReentrant*/{
-        if(_farmersId.length < 1){
-            revert RecyclePaymentSplitter__InformYourTokenIdToWithdraw();
+    function verifyContractBalanceToDistribution(uint256 _farmersId) external /*nonReentrant*/{
+        //Checks
+        if(MINDS_FARMER.ownerOf(_farmersId) != msg.sender){
+            revert RecyclePaymentSplitter__OnlyMindsFarmerCanWithdraw();
         }
 
-        if((address(this).balance + s_totalValueWithdrawn) == s_totalValueReceived){
-            _withdraw(_farmersId);
+        //Effects
+        if((address(this).balance + s_totalValueWithdrawn) == s_totalValueReceived){  
+            
+            if(s_valueAlreadyPaidPerNFT[_farmersId] >= s_totalValueDistributedPerFarmerNFT){
+                revert RecyclePaymentSplitter__NoValueToWithdraw();
+            }
+  
+            uint256 valueToWithdraw = s_totalValueDistributedPerFarmerNFT - s_valueAlreadyPaidPerNFT[_farmersId];
+
+            //Armazena o valor recebido por NFT's
+            s_valueAlreadyPaidPerNFT[_farmersId] += valueToWithdraw;
+            s_totalValueWithdrawn += valueToWithdraw;
+        
+            emit RecyclePaymentSplitter__Withdrawal(msg.sender, valueToWithdraw);
+            
+            Address.sendValue(payable(msg.sender), valueToWithdraw); 
         } else {
             //Adiciona o novo valor recebido ao total já registrado
             s_totalValueReceived += ((address(this).balance + s_totalValueWithdrawn) - s_totalValueReceived);
             //Refaz o calculo de distribuição por NFT
             s_totalValueDistributedPerFarmerNFT = s_totalValueReceived / FARMERS_SUPPLY;
-
-            _withdraw(_farmersId);
-        }
-    }
-
-    /**
-     * @notice This function is used to pull royalties from the contract
-     * @dev Only MINDS Farmer with avaiable funds can withdraw
-     */
-    function _withdraw(uint256[] memory _farmersId) private nonReentrant {
-
-        for(uint256 i = 0; i < _farmersId.length; i++){
-            //Checks
-            if(MINDS_FARMER.ownerOf(_farmersId[i]) != msg.sender){
-                revert RecyclePaymentSplitter__OnlyMindsFarmerCanWithdraw();
-            }
             
-            if(s_valueAlreadyPaidPerNFT[_farmersId[i]] >= s_totalValueDistributedPerFarmerNFT){
+            if(s_valueAlreadyPaidPerNFT[_farmersId] >= s_totalValueDistributedPerFarmerNFT){
                 revert RecyclePaymentSplitter__NoValueToWithdraw();
             }
 
             //Effects
-            uint256 valueToWithdraw = s_totalValueDistributedPerFarmerNFT - s_valueAlreadyPaidPerNFT[_farmersId[i]];
+            uint256 valueToWithdraw = s_totalValueDistributedPerFarmerNFT - s_valueAlreadyPaidPerNFT[_farmersId];
 
             //Armazena o valor recebido por NFT's
-            s_valueAlreadyPaidPerNFT[_farmersId[i]] += valueToWithdraw;
+            s_valueAlreadyPaidPerNFT[_farmersId] += valueToWithdraw;
             s_totalValueWithdrawn += valueToWithdraw;
         
             emit RecyclePaymentSplitter__Withdrawal(msg.sender, valueToWithdraw);
             
             //Interactions
-            Address.sendValue(payable(msg.sender), valueToWithdraw);            
+            Address.sendValue(payable(msg.sender), valueToWithdraw); 
         }
     }
 
@@ -93,5 +92,9 @@ contract RecyclePaymentSplitter is Ownable, ReentrancyGuard{
 
     function getBalance() external view onlyOwner returns (uint256){
         return address(this).balance;
+    }
+
+    function getTotalValueWithdrawn() external view returns (uint256){
+        return s_totalValueWithdrawn;
     }
 }
