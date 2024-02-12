@@ -37,11 +37,17 @@ contract RecyclePaymentSplitter is Ownable, ReentrancyGuard{
     }
 
     function verifyContractBalanceToDistribution(uint256[] memory _farmersId) external /*nonReentrant*/{
-        if(address(this).balance <= (s_totalValueReceived + s_totalValueWithdrawn)){
+        if(_farmersId.length < 1){
+            revert RecyclePaymentSplitter__InformYourTokenIdToWithdraw();
+        }
+
+        if((address(this).balance + s_totalValueWithdrawn) == s_totalValueReceived){
             _withdraw(_farmersId);
         } else {
-            s_totalValueReceived += (address(this).balance - s_totalValueReceived);
-            s_totalValueDistributedPerFarmerNFT = (s_totalValueReceived + s_totalValueWithdrawn) / FARMERS_SUPPLY;
+            //Adiciona o novo valor recebido ao total já registrado
+            s_totalValueReceived += ((address(this).balance + s_totalValueWithdrawn) - s_totalValueReceived);
+            //Refaz o calculo de distribuição por NFT
+            s_totalValueDistributedPerFarmerNFT = s_totalValueReceived / FARMERS_SUPPLY;
 
             _withdraw(_farmersId);
         }
@@ -52,27 +58,27 @@ contract RecyclePaymentSplitter is Ownable, ReentrancyGuard{
      * @dev Only MINDS Farmer with avaiable funds can withdraw
      */
     function _withdraw(uint256[] memory _farmersId) private nonReentrant{
-        if(_farmersId.length < 1){
-            revert RecyclePaymentSplitter__InformYourTokenIdToWithdraw();
-        }
 
         for(uint256 i = 0; i < _farmersId.length; i++){
             if(MINDS_FARMER.ownerOf(_farmersId[i]) != msg.sender){
                 revert RecyclePaymentSplitter__OnlyMindsFarmerCanWithdraw();
-            } else if(s_valueAlreadyPaidPerNFT[_farmersId[i]] == s_totalValueDistributedPerFarmerNFT){
-                revert RecyclePaymentSplitter__NoValueToWithdraw();
-            } else {
-                uint256 valueToWithdraw = s_totalValueDistributedPerFarmerNFT - s_valueAlreadyPaidPerNFT[_farmersId[i]];
-
-                //Armazena o valor recebido por NFT's
-                s_valueAlreadyPaidPerNFT[_farmersId[i]] += valueToWithdraw;
-                s_totalValueWithdrawn += valueToWithdraw;
-        
-                emit RecyclePaymentSplitter__Withdrawal(msg.sender, valueToWithdraw);
-
-                //Paga o valor para o farmer
-                Address.sendValue(payable(msg.sender), valueToWithdraw);
             }
+            
+            if(s_valueAlreadyPaidPerNFT[_farmersId[i]] >= s_totalValueDistributedPerFarmerNFT){
+                revert RecyclePaymentSplitter__NoValueToWithdraw();
+            }
+
+            uint256 valueToWithdraw = s_totalValueDistributedPerFarmerNFT - s_valueAlreadyPaidPerNFT[_farmersId[i]];
+
+            //Armazena o valor recebido por NFT's
+            s_valueAlreadyPaidPerNFT[_farmersId[i]] += valueToWithdraw;
+            s_totalValueWithdrawn += valueToWithdraw;
+        
+            emit RecyclePaymentSplitter__Withdrawal(msg.sender, valueToWithdraw);
+
+            //Paga o valor para o farmer
+            Address.sendValue(payable(msg.sender), valueToWithdraw);
+            
         }
     }
 
@@ -84,7 +90,7 @@ contract RecyclePaymentSplitter is Ownable, ReentrancyGuard{
         return s_valueAlreadyPaidPerNFT[_tokenId];
     }
 
-    function getBalance() external view returns (uint256) {
+    function getBalance() external view onlyOwner returns (uint256){
         return address(this).balance;
     }
 }

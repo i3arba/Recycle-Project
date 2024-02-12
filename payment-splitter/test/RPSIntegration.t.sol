@@ -8,8 +8,10 @@ import {DeployMindsFarmerMock} from "../script/DeployMindsFarmersMock.s.sol";
 import {MindsFarmerMock} from "../test/mocks/MindsFarmersMock.sol";
 
 error RecyclePaymentSplitter__OnlyFarmersContractCanSendEth();
+error RecyclePaymentSplitter__OnlyMindsFarmerCanWithdraw();
+error RecyclePaymentSplitter__NoValueToWithdraw();
 
-contract FundeMeTest is Test {
+contract RecyclePaymentSplitterTest is Test {
     RecyclePaymentSplitter splitter;
     DeployRecyclePaymentSplitter deployRecyclePaymentSplitter;
     
@@ -61,39 +63,49 @@ contract FundeMeTest is Test {
     }
 
     function testSeFarmersDepositaOValorNoSplitter() public distribuiNFTs {
+        vm.startPrank(BARBA);
         uint256 farmersBalancoInicial = farmers.getBalance();
         uint256 batchBalancoInicial = splitter.getBalance();
+        vm.stopPrank();
 
         assertEq(farmersBalancoInicial, VALUE_TO_TRANSFER);
         assertEq(batchBalancoInicial, 0);
 
         farmers.withdraw();
 
+        vm.startPrank(BARBA);
         uint256 farmersBalancoFinal = farmers.getBalance();
         uint256 batchBalancoFinal = splitter.getBalance();
+        vm.stopPrank();
+
         assertEq(farmersBalancoFinal, 0 ether);
-        assertEq(batchBalancoFinal, 101 ether);
+        assertEq(batchBalancoFinal, 100 ether);
     }
 
     function testSeReceivefunctionRevertComEnderecoAleatorio() public distribuiNFTs {
+        vm.prank(BARBA);
         console.logUint(splitter.getBalance());
 
         vm.prank(BARBA);
         vm.expectRevert(RecyclePaymentSplitter__OnlyFarmersContractCanSendEth.selector);
         payable(address(splitter)).transfer(VALUE_TO_TRANSFER);
-
+        
+        vm.prank(BARBA);
         console.logUint(splitter.getBalance());
     }
 
     function testSeDistributionFuncionaCorretamente() public distribuiNFTs {
+        vm.startPrank(BARBA);
         uint256 farmersBalancoInicial = farmers.getBalance();
         uint256 splitterBalancoInicial = splitter.getBalance();
+        vm.stopPrank();
 
         assertEq(farmersBalancoInicial, VALUE_TO_TRANSFER);
         assertEq(splitterBalancoInicial, 0);
 
         farmers.withdraw();
 
+        vm.prank(BARBA);
         uint256 balanceAfterWithdraw = splitter.getBalance();
         assertEq(balanceAfterWithdraw, VALUE_TO_TRANSFER);
 
@@ -103,8 +115,11 @@ contract FundeMeTest is Test {
         vm.prank(USER1);
         splitter.verifyContractBalanceToDistribution(farmersId);
 
+        vm.startPrank(BARBA);
         uint256 farmersBalancoFinal = farmers.getBalance();
         uint256 splitterBalancoFinal = splitter.getBalance();
+        vm.stopPrank();
+
         //Sacamos todo o valor
         assertEq(farmersBalancoFinal, 0);
         assertEq(splitterBalancoFinal, (VALUE_TO_TRANSFER - (VALUE_TO_TRANSFER/TOTAL_NFTS)));
@@ -133,9 +148,91 @@ contract FundeMeTest is Test {
 
         uint256[] memory farmersId1 = new uint256[](1);
         farmersId1[0] = 0;
+        //Zero
+        uint256 valueNFTZeroAlreadyWithdrawn = splitter.getValueWithdrawnPerFarmer(0);
 
         vm.prank(USER1);
         splitter.verifyContractBalanceToDistribution(farmersId1);
+
+        //1
+        uint256 valueNFTZeroCanWithdraw = splitter.getTotalValueDistributedPerFarmer();
+        //1
+        uint256 valueWithdrawnToNFTZero = splitter.getValueWithdrawnPerFarmer(0);
+
+        console.logUint(valueNFTZeroAlreadyWithdrawn);//0
+        console.logUint(valueNFTZeroCanWithdraw);//1
+        console.logUint(valueWithdrawnToNFTZero);//1
+
+        assertEq(valueNFTZeroAlreadyWithdrawn, 0);
+        assertEq(valueWithdrawnToNFTZero, valueNFTZeroCanWithdraw);
+        assertEq(valueWithdrawnToNFTZero, USER1.balance);
+
+        //Second Withdraw
+        uint256[] memory farmersId2 = new uint256[](1);
+        farmersId2[0] = 1;
+
+        uint256 valueNFTOneAlreadyWithdrawn = splitter.getValueWithdrawnPerFarmer(1);
+        uint256 valueNFTOneCanWithdraw = splitter.getTotalValueDistributedPerFarmer();
+
+        vm.prank(USER2);
+        splitter.verifyContractBalanceToDistribution(farmersId2);
+
+        uint256 valueWithdrawnToNFTOne = splitter.getValueWithdrawnPerFarmer(1);
+
+        assertEq(valueNFTOneAlreadyWithdrawn, 0);
+        assertEq(valueWithdrawnToNFTOne, valueNFTOneCanWithdraw);
+        assertEq(valueNFTOneCanWithdraw, USER2.balance );
+
+        vm.prank(BARBA);
+        uint256 splitterBalance = splitter.getBalance();
+        assertTrue(splitterBalance == 80 ether);
+    }
+
+    function testSeWithdrawReverteComCallerAleatorio() public distribuiNFTs{
+        farmers.withdraw();
+
+        uint256[] memory farmersId1 = new uint256[](1);
+        farmersId1[0] = 0;
+
+        vm.prank(BARBA);
+        vm.expectRevert(RecyclePaymentSplitter__OnlyMindsFarmerCanWithdraw.selector);
+        splitter.verifyContractBalanceToDistribution(farmersId1);
+    }
+
+    function testSeWithdrawRevertSeNaoHouverValorParaSacar() public distribuiNFTs{
+        farmers.withdraw();
+
+        uint256[] memory farmersId1 = new uint256[](1);
+        farmersId1[0] = 0;
+
+        vm.prank(USER1);
+        splitter.verifyContractBalanceToDistribution(farmersId1);
+
+        uint256 valueNFTZeroAlreadyWithdrawn = splitter.getValueWithdrawnPerFarmer(0);
+        uint256 valueNFTZeroCanWithdraw = splitter.getTotalValueDistributedPerFarmer();
+
+        assertEq(valueNFTZeroAlreadyWithdrawn, valueNFTZeroCanWithdraw);
+        assertEq(valueNFTZeroCanWithdraw, USER1.balance);
+
+        vm.prank(USER1);
+        vm.expectRevert(RecyclePaymentSplitter__NoValueToWithdraw.selector);
+        splitter.verifyContractBalanceToDistribution(farmersId1);
+    }
+
+    function testSeASomaDeRecebiveisEhContabilizadaCorretamente() public distribuiNFTs{
+        farmers.withdraw();
+
+        uint256[] memory farmersId1 = new uint256[](1);
+        farmersId1[0] = 0;
+
+        vm.prank(USER1);
+        splitter.verifyContractBalanceToDistribution(farmersId1);
+
+        uint256 valueNFTZeroAlreadyWithdrawn = splitter.getValueWithdrawnPerFarmer(0);
+        uint256 valueNFTZeroCanWithdraw = splitter.getTotalValueDistributedPerFarmer();
+
+        assertEq(valueNFTZeroAlreadyWithdrawn, valueNFTZeroCanWithdraw);
+        assertEq(valueNFTZeroCanWithdraw, USER1.balance);
 
         uint256[] memory farmersId2 = new uint256[](1);
         farmersId2[0] = 1;
@@ -143,11 +240,38 @@ contract FundeMeTest is Test {
         vm.prank(USER2);
         splitter.verifyContractBalanceToDistribution(farmersId2);
 
-        uint256 valueWithdrawnToNFTZero = splitter.getValueWithdrawnPerFarmer(1);
-        uint256 valueNFTCanWithdraw = splitter.getTotalValueDistributedPerFarmer();
+        uint256 valueNFTOneAlreadyWithdrawn = splitter.getValueWithdrawnPerFarmer(1);
+        uint256 valueNFTOneCanWithdraw = splitter.getTotalValueDistributedPerFarmer();
 
-        assertEq(valueWithdrawnToNFTZero, valueNFTCanWithdraw);
-        
-        assertEq(valueNFTCanWithdraw, USER2.balance );
+        assertEq(valueNFTOneAlreadyWithdrawn, valueNFTOneCanWithdraw);
+        assertEq(valueNFTOneCanWithdraw, USER2.balance);
+
+        vm.prank(BARBA);
+        uint256 splitterBalance = splitter.getBalance();
+        assertTrue(splitterBalance == 80 ether);
+
+        farmers.addSplitter(address(splitter));
+        vm.prank(BARBA);
+        payable(address(farmers)).transfer(VALUE_TO_TRANSFER);
+
+        farmers.withdraw();
+
+        vm.prank(BARBA);
+        uint256 splitterBalanceAfterSecondDeposit = splitter.getBalance();
+        assertTrue(splitterBalanceAfterSecondDeposit == 180 ether);
+
+        vm.prank(USER1);
+        splitter.verifyContractBalanceToDistribution(farmersId1);
+
+        uint256 valueNFTZeroAlreadyWithdrawnAfterSecondWithdraw = splitter.getValueWithdrawnPerFarmer(0);
+        uint256 valueNFTZeroCanWithdrawAfterSecondWithdraw = splitter.getTotalValueDistributedPerFarmer();
+
+        assertEq(valueNFTZeroAlreadyWithdrawnAfterSecondWithdraw, valueNFTZeroCanWithdrawAfterSecondWithdraw);
+        assertEq(valueNFTZeroCanWithdrawAfterSecondWithdraw, USER1.balance);
+
+        assertTrue(splitter.getValueWithdrawnPerFarmer(1) == 10 ether);
+        assertTrue(splitter.getTotalValueDistributedPerFarmer() == 20 ether);
+        vm.prank(BARBA);
+        assertTrue(splitter.getBalance() == 170 ether);
     }
 }
