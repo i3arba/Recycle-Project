@@ -16,7 +16,7 @@ contract RecyclePaymentSplitter is Ownable, ReentrancyGuard{
     uint256 private s_totalValueReceived;
     uint256 private s_totalValueWithdrawn;
     uint256 private s_totalValueDistributedPerFarmerNFT;
-    uint256 constant private FARMERS_SUPPLY = 10;
+    uint256 constant private FARMERS_SUPPLY = 100;
     
     //IERC721 constant private MINDS_FARMER = IERC721(0x2D91875FA696bDf3543ca0634258F6074Cc5df20);
     IERC721 immutable private MINDS_FARMER;

@@ -54,7 +54,7 @@ contract RecyclePaymentSplitterUnitTest is Test {
         uint256 totalUser = s_users.length;
 
         for (uint256 i = 0; i < totalUser; i++) {
-            farmers.safeMint(s_users[i], "");
+            farmers.safeMint(s_users[i], 1, "");
         }
         farmers.addSplitter(address(splitter));
         vm.prank(BARBA);

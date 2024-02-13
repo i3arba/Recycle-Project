@@ -20,11 +20,12 @@ contract MindsFarmerMock is ERC721, ERC721URIStorage, ERC721Burnable {
 
     receive() external payable {}
 
-    function safeMint(address to, string memory uri) public returns(uint256){
-        uint256 tokenId = _nextTokenId++;
-        _safeMint(to, tokenId);
-        _setTokenURI(tokenId, uri);
-        return tokenId;
+    function safeMint(address to, uint256 units, string memory uri) public {
+        for(uint256 i = 0; i < units; i++){
+            _safeMint(to, _nextTokenId);
+            _setTokenURI(_nextTokenId, uri);
+            _nextTokenId++;
+        }
     }
 
     // The following functions are overrides required by Solidity.

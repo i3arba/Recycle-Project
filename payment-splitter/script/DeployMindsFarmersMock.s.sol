@@ -2,19 +2,19 @@
 
 pragma solidity ^0.8.18;
 
-import {Script} from "forge-std/Script.sol"; //Ferramenta do Foundry
-import {MindsFarmerMock} from "../test/mocks/MindsFarmersMock.sol";//Contrato á ser deployado;
+import {Script} from "forge-std/Script.sol";
+import {MindsFarmerMock} from "../test/mocks/MindsFarmersMock.sol";
 
 contract DeployMindsFarmerMock is Script {
-	MindsFarmerMock farmers; //Inicializa o contrato
+	MindsFarmerMock farmers;
 
-	function run() external returns(MindsFarmerMock){ //Função padrão
+	function run() external returns(MindsFarmerMock){
 		
-		vm.startBroadcast(); //Inicia Execução
+		vm.startBroadcast();
 		
-		farmers = new MindsFarmerMock();//Realiza o deploy do contrato.
+		farmers = new MindsFarmerMock();
 
-		vm.stopBroadcast();//Encerra a Execução
+		vm.stopBroadcast();
 
 		return farmers;
 	}
