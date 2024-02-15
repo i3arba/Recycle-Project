@@ -62,7 +62,7 @@ contract RecyclePaymentSplitterUnitTest is Test {
         _;
     }
 
-    function testSeFarmersDepositaOValorNoSplitter() public distribuiNFTs {
+    function testUniSeFarmersDepositaOValorNoSplitter() public distribuiNFTs {
         vm.startPrank(BARBA);
         uint256 farmersBalancoInicial = farmers.getBalance();
         uint256 batchBalancoInicial = splitter.getBalance();
@@ -82,7 +82,7 @@ contract RecyclePaymentSplitterUnitTest is Test {
         assertEq(batchBalancoFinal, 100 ether);
     }
 
-    function testSeReceivefunctionRevertComEnderecoAleatorio() public distribuiNFTs {
+    function testUniSeReceivefunctionRevertComEnderecoAleatorio() public distribuiNFTs {
         vm.prank(BARBA);
         console.logUint(splitter.getBalance());
 
@@ -94,7 +94,7 @@ contract RecyclePaymentSplitterUnitTest is Test {
         console.logUint(splitter.getBalance());
     }
 
-    function testSeDistributionFuncionaCorretamente() public distribuiNFTs {
+    function testUniSeDistributionFuncionaCorretamente() public distribuiNFTs {
         vm.startPrank(BARBA);
         uint256 farmersBalancoInicial = farmers.getBalance();
         uint256 splitterBalancoInicial = splitter.getBalance();
@@ -124,7 +124,7 @@ contract RecyclePaymentSplitterUnitTest is Test {
         assertEq(splitterBalancoFinal, (VALUE_TO_TRANSFER - (VALUE_TO_TRANSFER/TOTAL_NFTS)));
     }
 
-    function testSeOValorSacadoEhContabilizadoCorretamenteNoNFTID() public distribuiNFTs{
+    function testUniSeOValorSacadoEhContabilizadoCorretamenteNoNFTID() public distribuiNFTs{
 
         farmers.withdraw();
 
@@ -141,7 +141,7 @@ contract RecyclePaymentSplitterUnitTest is Test {
         assertEq(valueNFTCanWithdraw, USER1.balance );
     }
 
-    function testSeMultiplosSaquesOcorremCorretamente() public distribuiNFTs{
+    function testUniSeMultiplosSaquesOcorremCorretamente() public distribuiNFTs{
         farmers.withdraw();
 
         uint256 farmersId1 = 0;
@@ -184,7 +184,7 @@ contract RecyclePaymentSplitterUnitTest is Test {
         assertTrue(splitterBalance == 80 ether);
     }
 
-    function testSeWithdrawReverteComCallerAleatorio() public distribuiNFTs{
+    function testUniSeWithdrawReverteComCallerAleatorio() public distribuiNFTs{
         farmers.withdraw();
 
         uint256 farmersId1 = 0;
@@ -194,7 +194,7 @@ contract RecyclePaymentSplitterUnitTest is Test {
         splitter.verifyContractBalanceToDistribution(farmersId1);
     }
 
-    function testSeWithdrawRevertSeNaoHouverValorParaSacar() public distribuiNFTs{
+    function testUniSeWithdrawRevertSeNaoHouverValorParaSacar() public distribuiNFTs{
         farmers.withdraw();
 
         uint256 farmersId1 = 0;
@@ -213,7 +213,7 @@ contract RecyclePaymentSplitterUnitTest is Test {
         splitter.verifyContractBalanceToDistribution(farmersId1);
     }
 
-    function testSeASomaDeRecebiveisEhContabilizadaCorretamente() public distribuiNFTs{
+    function testUniSeASomaDeRecebiveisEhContabilizadaCorretamente() public distribuiNFTs{
         farmers.withdraw();
 
         uint256 farmersId1 = 0;
@@ -266,7 +266,7 @@ contract RecyclePaymentSplitterUnitTest is Test {
         assertTrue(splitter.getBalance() == 170 ether);
     }
 
-    function testSeEhPossivelSacarTodoOValorDoContrato() public distribuiNFTs{
+    function testUniSeEhPossivelSacarTodoOValorDoContrato() public distribuiNFTs{
         farmers.withdraw();
 
         vm.prank(BARBA);

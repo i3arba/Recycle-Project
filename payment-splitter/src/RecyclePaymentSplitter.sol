@@ -16,7 +16,7 @@ contract RecyclePaymentSplitter is Ownable, ReentrancyGuard{
     uint256 private s_totalValueReceived;
     uint256 private s_totalValueWithdrawn;
     uint256 private s_totalValueDistributedPerFarmerNFT;
-    uint256 constant private FARMERS_SUPPLY = 100;
+    uint256 constant private FARMERS_SUPPLY = 10;
     
     //IERC721 constant private MINDS_FARMER = IERC721(0x2D91875FA696bDf3543ca0634258F6074Cc5df20);
     IERC721 immutable private MINDS_FARMER;
@@ -58,6 +58,7 @@ contract RecyclePaymentSplitter is Ownable, ReentrancyGuard{
      * @dev Only MINDS Farmer with avaiable funds can withdraw
      */
     function _withdraw(uint256[] memory _farmersId) private nonReentrant {
+        uint256 valueToWithdraw;
 
         for(uint256 i = 0; i < _farmersId.length; i++){
             //Checks
@@ -69,18 +70,18 @@ contract RecyclePaymentSplitter is Ownable, ReentrancyGuard{
                 revert RecyclePaymentSplitter__NoValueToWithdraw();
             }
 
-            //Effects
-            uint256 valueToWithdraw = s_totalValueDistributedPerFarmerNFT - s_valueAlreadyPaidPerNFT[_farmersId[i]];
+            valueToWithdraw = s_totalValueDistributedPerFarmerNFT - s_valueAlreadyPaidPerNFT[_farmersId[i]];
 
-            //Armazena o valor recebido por NFT's
-            s_valueAlreadyPaidPerNFT[_farmersId[i]] += valueToWithdraw;
-            s_totalValueWithdrawn += valueToWithdraw;
-        
-            emit RecyclePaymentSplitter__Withdrawal(msg.sender, valueToWithdraw);
-            
-            //Interactions
-            Address.sendValue(payable(msg.sender), valueToWithdraw);            
+            //Effects
+            s_valueAlreadyPaidPerNFT[_farmersId[i]] += s_totalValueDistributedPerFarmerNFT - s_valueAlreadyPaidPerNFT[_farmersId[i]];
         }
+
+        //Effects
+        s_totalValueWithdrawn += valueToWithdraw;
+        emit RecyclePaymentSplitter__Withdrawal(msg.sender, valueToWithdraw);
+
+        //Interactions
+        Address.sendValue(payable(msg.sender), valueToWithdraw);            
     }
 
     function getTotalValueDistributedPerFarmer() external view returns(uint256){
