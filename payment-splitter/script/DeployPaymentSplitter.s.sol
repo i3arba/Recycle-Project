@@ -8,14 +8,13 @@ import {DeployMindsFarmerMock} from "./DeployMindsFarmersMock.s.sol";
 
 contract DeployPaymentSplitter is Script {
 	
-	address farmers = 0xafc54198dfdBBc35C18B24F86Cff0C18c43af781;
-    address owner = 0x5FA769922a6428758fb44453815e2c436c57C3c7;
+	address farmers = 0x2D91875FA696bDf3543ca0634258F6074Cc5df20;
 
 	function run() public returns(RecyclePaymentSplitter){ 
 
 		vm.startBroadcast();
 
-		RecyclePaymentSplitter splitter = new RecyclePaymentSplitter(owner, farmers);
+		RecyclePaymentSplitter splitter = new RecyclePaymentSplitter(farmers);
 
 		vm.stopBroadcast();
 

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import{ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
@@ -11,7 +10,7 @@ error RecyclePaymentSplitter__NoValueToWithdraw();
 error RecyclePaymentSplitter__OnlyMindsFarmerCanWithdraw();
 error RecyclePaymentSplitter__InformYourTokenIdToWithdraw();
 
-contract RecyclePaymentSplitterUni is Ownable, ReentrancyGuard{
+contract RecyclePaymentSplitterUni is ReentrancyGuard{
     
     uint256 private s_totalValueReceived;
     uint256 private s_totalValueWithdrawn;
@@ -26,7 +25,7 @@ contract RecyclePaymentSplitterUni is Ownable, ReentrancyGuard{
     event RecyclePaymentSplitter__Withdrawal(address indexed account, uint256 indexed value);
     event RecyclePaymentSplitter__ValueReceived(uint256 indexed receivedValue, uint256 indexed valuePerNFT);
     
-    constructor(address _owner, address _farmer) Ownable(_owner){
+    constructor(address _farmer){
         MINDS_FARMER = IERC721(_farmer);
     }
 
@@ -90,7 +89,7 @@ contract RecyclePaymentSplitterUni is Ownable, ReentrancyGuard{
         return s_valueAlreadyPaidPerNFT[_tokenId];
     }
 
-    function getBalance() external view onlyOwner returns (uint256){
+    function getBalance() external view returns (uint256){
         return address(this).balance;
     }
 

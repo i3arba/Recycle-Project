@@ -9,10 +9,10 @@ import {DeployMindsFarmerMock} from "./DeployMindsFarmersMock.s.sol";
 contract DeployRecyclePaymentSplitterUni is Script {
 	RecyclePaymentSplitterUni splitter;
 
-	function run(address _owner, address _farmers) external returns(RecyclePaymentSplitterUni){ 
+	function run(address _farmers) external returns(RecyclePaymentSplitterUni){ 
 		vm.startBroadcast();
 		
-		splitter = new RecyclePaymentSplitterUni(_owner, address(_farmers));
+		splitter = new RecyclePaymentSplitterUni(address(_farmers));
 
 		vm.stopBroadcast();
 		return splitter;

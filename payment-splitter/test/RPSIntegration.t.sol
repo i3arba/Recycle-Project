@@ -45,7 +45,7 @@ contract RecyclePaymentSplitterTest is Test {
         farmers = deployMindsFarmerMock.run();
 
         deployRecyclePaymentSplitter = new DeployRecyclePaymentSplitter();
-        splitter = deployRecyclePaymentSplitter.run(BARBA, address(farmers));
+        splitter = deployRecyclePaymentSplitter.run(address(farmers));
 
         vm.deal(BARBA, STARTING_BALANCE);
     }
@@ -274,4 +274,39 @@ contract RecyclePaymentSplitterTest is Test {
         vm.prank(BARBA);
         assertTrue(splitter.getBalance() == 170 ether);
     }
+
+    // function testSeOValorSacadoEhRecebidoCorretamentePeloNFTOwner() public {
+    //     uint256 totalUser = s_users.length;
+
+    //     for (uint256 i = 0; i < totalUser; i++) {
+    //         farmers.safeMint(s_users[i], 10, "");
+    //     }
+
+    //     farmers.addSplitter(address(splitter));
+    //     vm.prank(BARBA);
+    //     payable(address(farmers)).transfer(VALUE_TO_TRANSFER);
+
+    //     farmers.withdraw();
+
+    //     uint256[] memory farmersId1 = new uint256[](10);
+    //     farmersId1[0] = 0;
+    //     farmersId1[1] = 1;
+    //     farmersId1[2] = 2;
+    //     farmersId1[3] = 3;
+    //     farmersId1[4] = 4;
+    //     farmersId1[5] = 5;
+    //     farmersId1[6] = 6;
+    //     farmersId1[7] = 7;
+    //     farmersId1[8] = 8;
+    //     farmersId1[9] = 9;
+
+    //     vm.prank(USER1);
+    //     splitter.verifyContractBalanceToDistribution(farmersId1);
+
+    //     uint256 userOneBalance = USER1.balance;
+    //     console.logUint(userOneBalance);
+    //     assertEq(USER1.balance, 10 ether);
+
+    //     assertEq(splitter.getBalance(), 90 ether);
+    // }
 }
