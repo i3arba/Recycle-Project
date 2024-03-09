@@ -15,4 +15,6 @@ docs/
 .env
 
 # libs
-lib
+lib/contracts
+lib/forge-std
+lib/openzeppelin-contracts
