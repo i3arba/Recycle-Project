@@ -10,3 +10,9 @@
 [submodule "Custom-Burn-And-Mint/lib/forge-std"]
 	path = Custom-Burn-And-Mint/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "Custom-Burn-And-Mint/lib/openzeppelin-contracts"]
+	path = Custom-Burn-And-Mint/lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "Custom-Burn-And-Mint/lib/solmate"]
+	path = Custom-Burn-And-Mint/lib/solmate
+	url = https://github.com/transmissions11/solmate
