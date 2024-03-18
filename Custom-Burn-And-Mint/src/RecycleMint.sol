@@ -3,6 +3,7 @@
 pragma solidity 0.8.20;
 
 import {Farmers} from "../test/Mocks/Farmers.sol";
+import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import {RecycleMindsPFP} from "../test/Mocks/MindsPFP.sol";
 
 /////////////////////
@@ -11,7 +12,7 @@ import {RecycleMindsPFP} from "../test/Mocks/MindsPFP.sol";
 error RecycleMint_YouNeedToInformeTheAddresses(address farmers, address minds);
 error RecycleMint_YouAreNotTheNFTOwner(address nftOwner, address caller);
 
-contract RecycleMint{
+contract RecycleMint is IERC721Receiver{
     
     ///////////////////////////
     /// IMMUTABLE VARIABLES ///
@@ -36,7 +37,6 @@ contract RecycleMint{
     ///////////////////
     /// CONSTRUCTOR ///
     ///////////////////
-
     constructor (address _farmers, address _minds){
         if(_farmers == address(0) || _minds == address(0)){
             revert RecycleMint_YouNeedToInformeTheAddresses(_farmers, _minds);
@@ -61,9 +61,16 @@ contract RecycleMint{
         emit RecycleMint_RecycledAndMinted(_nftId, nftToBeMinted);
 
         //interactions
-        i_farmers.burn(_nftId);
+        i_farmers.safeTransferFrom(caller, address(this), _nftId);
         i_minds.mintOperator(++nftToBeMinted, "", caller);
 
         return nftToBeMinted;
+    }
+
+    ////////////////////////////
+    /// PURE, VIEW FUNCTIONS ///
+    ////////////////////////////
+    function onERC721Received(address, address, uint256, bytes calldata) external pure returns (bytes4) {
+        return IERC721Receiver.onERC721Received.selector;
     }
 }

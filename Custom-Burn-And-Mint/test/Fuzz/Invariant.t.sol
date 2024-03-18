@@ -48,10 +48,22 @@ contract Invariant is Test{
         uint256 nftId = recycle.recycleAndMint(randomValue);
         vm.stopPrank();
 
-        vm.expectRevert(abi.encodeWithSelector(ERC721NonexistentToken.selector, randomValue));
-        farmer.ownerOf(randomValue);
+        assertEq(farmer.ownerOf(randomValue), address(recycle));
         assertEq(minds.ownerOf(nftId), BARBA);
 
         assertEq(nftId, FIRST_NFT_TO_MINT);
+    }
+    
+    error RecycleMint_YouAreNotTheNFTOwner(address nftOwner, address caller);
+    function testIfANonHolderCanMint(uint256 randomValue) public {
+        vm.startPrank(ATHENA);
+        if(randomValue > LAST_NFT_ID){
+            vm.expectRevert(abi.encodeWithSelector(ERC721NonexistentToken.selector, randomValue));
+            uint256 nftId = recycle.recycleAndMint(randomValue);
+        } else {
+            vm.expectRevert(abi.encodeWithSelector(RecycleMint_YouAreNotTheNFTOwner.selector, BARBA, ATHENA));
+            uint256 nftId = recycle.recycleAndMint(randomValue);
+        }
+        vm.stopPrank();
     }
 }
