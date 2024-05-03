@@ -28,7 +28,7 @@ error MaxSupply();
 error NonExistentTokenURI();
 error NotOperator();
 
-contract RecycleMindsPFP is ERC721, Owned, ReentrancyGuard {
+contract RecycleMindsPFPMock is ERC721, Owned, ReentrancyGuard {
     /*//////////////////////////////////////////////////////////////
                                  EVENTS
     //////////////////////////////////////////////////////////////*/

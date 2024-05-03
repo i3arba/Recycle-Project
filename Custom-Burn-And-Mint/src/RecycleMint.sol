@@ -4,7 +4,7 @@ pragma solidity 0.8.20;
 
 import {Farmers} from "../test/Mocks/Farmers.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
-import {RecycleMindsPFP} from "../test/Mocks/MindsPFP.sol";
+import {RecycleMindsPFPMock} from "../test/Mocks/RecycleMindsPFPMock.sol";
 
 /////////////////////
 /// CUSTOM ERRORS ///
@@ -21,7 +21,7 @@ contract RecycleMint is IERC721Receiver{
     /// @dev ERC721 MindsFarmers
     Farmers private immutable i_farmers;
     /// @dev ERC721 RecycleMindsPFP
-    RecycleMindsPFP private immutable i_minds;
+    RecycleMindsPFPMock private immutable i_minds;
     
     ///////////////////////
     /// STATE VARIABLES ///
@@ -42,7 +42,7 @@ contract RecycleMint is IERC721Receiver{
             revert RecycleMint_YouNeedToInformeTheAddresses(_farmers, _minds);
         }
         i_farmers = Farmers(_farmers);
-        i_minds = RecycleMindsPFP(_minds);
+        i_minds = RecycleMindsPFPMock(_minds);
     }
 
     //////////////////////////

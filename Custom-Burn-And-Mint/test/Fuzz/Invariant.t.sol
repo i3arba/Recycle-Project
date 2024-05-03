@@ -5,12 +5,12 @@ import {Test, console2} from "forge-std/Test.sol";
 import {RecycleMint} from "../../src/RecycleMint.sol";
 import {RecycleMintDeploy} from "../../script/RecycleMintDeploy.s.sol";
 import {Farmers} from "../Mocks/Farmers.sol";
-import {RecycleMindsPFP} from "../Mocks/MindsPFP.sol";
+import {RecycleMindsPFPMock} from "../Mocks/RecycleMindsPFPMock.sol";
 
 contract Invariant is Test{
 	RecycleMint recycle;
     Farmers farmer;
-    RecycleMindsPFP minds;
+    RecycleMindsPFPMock minds;
 	
 	address BARBA = makeAddr("BARBA");
   	address ATHENA = makeAddr("ATHENA");
@@ -21,7 +21,7 @@ contract Invariant is Test{
 
 	function setUp() external{
         farmer = new Farmers(BARBA);
-        minds = new RecycleMindsPFP("Minds", "RM", BARBA, 98);
+        minds = new RecycleMindsPFPMock("Minds", "RM", BARBA, 98);
 
 		RecycleMintDeploy deploy = new RecycleMintDeploy();
 		recycle = deploy.run(address(farmer), address(minds));
@@ -59,10 +59,10 @@ contract Invariant is Test{
         vm.startPrank(ATHENA);
         if(randomValue > LAST_NFT_ID){
             vm.expectRevert(abi.encodeWithSelector(ERC721NonexistentToken.selector, randomValue));
-            uint256 nftId = recycle.recycleAndMint(randomValue);
+            recycle.recycleAndMint(randomValue);
         } else {
             vm.expectRevert(abi.encodeWithSelector(RecycleMint_YouAreNotTheNFTOwner.selector, BARBA, ATHENA));
-            uint256 nftId = recycle.recycleAndMint(randomValue);
+            recycle.recycleAndMint(randomValue);
         }
         vm.stopPrank();
     }

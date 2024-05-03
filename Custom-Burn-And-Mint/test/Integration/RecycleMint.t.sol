@@ -5,12 +5,12 @@ import {Test, console2} from "forge-std/Test.sol";
 import {RecycleMint} from "../../src/RecycleMint.sol";
 import {RecycleMintDeploy} from "../../script/RecycleMintDeploy.s.sol";
 import {Farmers} from "../Mocks/Farmers.sol";
-import {RecycleMindsPFP} from "../Mocks/MindsPFP.sol";
+import {RecycleMindsPFPMock} from "../Mocks/RecycleMindsPFPMock.sol";
 
 contract RecycleMintTest is Test{
 	RecycleMint recycle;
     Farmers farmer;
-    RecycleMindsPFP minds;
+    RecycleMindsPFPMock minds;
 	
 	address BARBA = makeAddr("BARBA");
   	address ATHENA = makeAddr("ATHENA");
@@ -20,7 +20,7 @@ contract RecycleMintTest is Test{
 
 	function setUp() external{
         farmer = new Farmers(BARBA);
-        minds = new RecycleMindsPFP("Minds", "RM", BARBA, 98);
+        minds = new RecycleMindsPFPMock("Minds", "RM", BARBA, 98);
 
 		RecycleMintDeploy deploy = new RecycleMintDeploy();
 		recycle = deploy.run(address(farmer), address(minds));
